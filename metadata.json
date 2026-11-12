@@ -1,0 +1,6 @@
+{
+  "name": "MeeChain Ops Dashboard",
+  "description": "Sovereign governance, T2PRAWANTA holder verification, membership eligibility, and MCB Treasury operations connected to MintMe DEX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

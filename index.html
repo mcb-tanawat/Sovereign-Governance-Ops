@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MeeChain Ops Dashboard &amp; Membership</title>
+    <meta name="description" content="Sovereign governance, T2PRAWANTA holder verification, membership eligibility, and MCB Treasury operations connected to MintMe DEX." />
+    <meta property="og:title" content="MeeChain Ops Dashboard &amp; Membership" />
+    <meta property="og:description" content="Sovereign governance, T2PRAWANTA holder verification, membership eligibility, and MCB Treasury operations connected to MintMe DEX." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Extension Guard: Suppress Chrome Extension inpage.js connection errors from crashing host harness -->
+    <script>
+      (function() {
+        function isExtensionError(msg, src, err) {
+          var str = [msg, src, (err && err.message), (err && err.stack)].join(' ');
+          return str.indexOf('MetaMask') !== -1 ||
+                 str.indexOf('inpage.js') !== -1 ||
+                 str.indexOf('chrome-extension://') !== -1 ||
+                 str.indexOf('Failed to connect') !== -1;
+        }
+
+        var origOnError = window.onerror;
+        window.onerror = function(msg, src, lineno, colno, err) {
+          if (isExtensionError(msg, src, err)) {
+            console.warn('[Extension Guard Suppressed]', msg);
+            return true;
+          }
+          if (origOnError) return origOnError.apply(this, arguments);
+        };
+
+        window.addEventListener('error', function(e) {
+          if (isExtensionError(e.message, e.filename, e.error)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason ? (e.reason.message || String(e.reason)) : '';
+          if (isExtensionError(reason, '', e.reason)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
