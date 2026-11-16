@@ -157,6 +157,18 @@ class MeeChainStore {
       created_at: '2026-11-04T08:15:00Z',
       vesting_end_date: '2026-12-04T08:15:00Z',
       vesting_progress_pct: 15
+    },
+    {
+      request_id: 'EX-2026-080',
+      member_id: 'MCB-UID-005',
+      wallet_address: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
+      t2p_submitted_amount: 3000,
+      mcb_quota_allocated: 750,
+      conversion_ratio: 0.25,
+      exchange_status: 'REJECTED',
+      created_at: '2026-11-01T09:00:00Z',
+      vesting_end_date: '2026-12-01T09:00:00Z',
+      vesting_progress_pct: 0
     }
   ];
 

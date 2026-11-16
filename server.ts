@@ -10,9 +10,26 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function getArgValue(flag: string): string | undefined {
+  const idx = process.argv.indexOf(flag);
+  if (idx !== -1 && idx + 1 < process.argv.length) {
+    return process.argv[idx + 1];
+  }
+  const prefix = `${flag}=`;
+  const match = process.argv.find((arg) => arg.startsWith(prefix));
+  return match ? match.slice(prefix.length) : undefined;
+}
+
 const app = express();
-const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
+const argPort = getArgValue('--port');
+const argHost = getArgValue('--host');
+const envPort =
+  process.env.PORT && process.env.PORT !== process.env.NGINX_PORT
+    ? process.env.PORT
+    : undefined;
+const PORT = Number(argPort || envPort || process.env.DEFAULT_APP_PORT || 3000);
+const HOST = argHost || '0.0.0.0';
 
 app.use(express.json());
 
@@ -262,24 +279,52 @@ app.post('/api/v1/treasury/reconcile', (_req: Request, res: Response) => {
 // ================= SERVE VITE FRONTEND =================
 
 async function startServer() {
+  let viteMiddlewares: any = null;
+  let viteInitError: Error | null = null;
+
+  const viteReadyPromise = !isProduction
+    ? import('vite')
+        .then(({ createServer: createViteServer }) =>
+          createViteServer({
+            server: {
+              middlewareMode: true,
+              hmr: process.env.DISABLE_HMR === 'true' ? false : undefined,
+              watch: process.env.DISABLE_HMR === 'true' ? null : undefined,
+            },
+            appType: 'spa',
+          })
+        )
+        .then((vite) => {
+          viteMiddlewares = vite.middlewares;
+        })
+        .catch((err) => {
+          viteInitError = err;
+          console.error('[MeeChain Ops] Vite initialization failed:', err);
+        })
+    : Promise.resolve();
+
   if (!isProduction) {
-    // In dev, use Vite dev server middleware
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
+    app.use(async (req, res, next) => {
+      if (!viteMiddlewares && !viteInitError) {
+        await viteReadyPromise;
+      }
+      if (viteInitError) {
+        return res.status(500).send('Frontend dev middleware failed to initialize.');
+      }
+      if (viteMiddlewares) {
+        return viteMiddlewares(req, res, next);
+      }
+      next();
     });
-    app.use(vite.middlewares);
   } else {
-    // In production, serve dist folder
     app.use(express.static(path.resolve(__dirname, 'dist')));
     app.get('*', (_req: Request, res: Response) => {
       res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
     });
   }
 
-  app.listen(PORT, () => {
-    console.log(`[MeeChain Ops] Server running at http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`[MeeChain Ops] Server running at http://${HOST}:${PORT}`);
     console.log(`[MeeChain Gateway] Target MintMe RPC: ${gatewayService ? 'Active' : 'Offline'}`);
   });
 }
